@@ -8,6 +8,8 @@ import TopLikes from "./pages/TopLikes.jsx";
 import AllBooks from "./pages/AllBooks.jsx";
 import Search from "./pages/Search.jsx";
 import Category from "./pages/Category.jsx";
+import CategoryDetail from './pages/CategoryDetail.jsx';
+import TopRated from './pages/TopRated';
 // Our BootStrap//
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
@@ -23,7 +25,9 @@ const router = createBrowserRouter([
   {path:"/toplikes",element:<TopLikes/>},
   {path:"/allbooks",element:<AllBooks/>},
   {path:"/search",element:<Search/>},
-  {path:"/category",element:<Category/>}
+  {path:"/category",element:<Category/>},
+  { path: "/category/:type", element: <CategoryDetail /> },
+  {path:"/toprated", element:<TopRated/>}
 
 ]);
  root.render(

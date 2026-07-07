@@ -57,7 +57,7 @@ const Header = () => {
                     </Link>
                   </li>
                   <li>
-                    <Link className="dropdown-item fw-semibold" to="/top-rated">
+                    <Link className="dropdown-item fw-semibold" to="/toprated">
                       Top Rating Books
                     </Link>
                   </li>

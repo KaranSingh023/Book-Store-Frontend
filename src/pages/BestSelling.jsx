@@ -41,7 +41,7 @@ function BestSelling() {
       <main>
         <section className="my-4 mx-5">
           <h2 className="fw-bold mb-4">Bestselling Books</h2>
-          {/* 1. Changed row-cols-md-3 to row-cols-auto and added justify-content-center */}
+          
           <div className="row row-cols-auto g-4 justify-content-start mx-5">
             {books.map((book) => (
               <div className="col" key={book._id}>

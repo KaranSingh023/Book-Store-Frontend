@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Header from "../Components/Header";
 import Footer from "../Components/Footer";
 
@@ -95,7 +96,7 @@ function Category() {
             const previewBooks = allBooksInCat.slice(0, 5);
 
             return (
-              <div key={category} className="mb-5 bg-white p-4 rounded-3 shadow-sm border">
+              <div key={category} className="mb-5 mt-2 bg-white p-4 rounded-3 shadow-sm border">
                 
                 
                 <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
@@ -109,12 +110,12 @@ function Category() {
                   </div>
                   
                   {/* Clean View All Button - Placed and styled, inactive for now */}
-                  <button 
-                    className="btn btn-outline-warning text-dark fw-bold px-3 rounded-pill btn-sm shadow-sm"
-                    disabled
-                  >
-                    View All →
-                  </button>
+                  <Link
+  to={`/category/${category}`}
+  className="btn btn-outline-warning text-dark fw-bold px-3 rounded-pill btn-sm shadow-sm"
+>
+  View All →
+</Link>
                 </div>
 
                
