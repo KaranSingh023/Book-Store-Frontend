@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './Components/Navbar';
 import Footer from './Components/Footer';
-import Main from './pages/Main';
+import Main from './Pages/Main';
 import ProductListing from './pages/ProductListing';
 import ProductDetail from './pages/ProductDetail';
 import Wishlist from './pages/Wishlist';
