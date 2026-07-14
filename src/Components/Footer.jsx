@@ -1,12 +1,14 @@
+
 const Footer = () => {
   return (
-    <>
-      <footer class="bg-dark text-white text-center py-4">
-  <div class="card-footer bg-transparent border-success">  A to Z Book Store</div>
-
-      </footer>
-    </>
+    <footer className="bg-dark text-light py-3 mt-auto">
+      <div className="container text-center">
+        <small>
+          &copy; {new Date().getFullYear()} A to Z BookStore. All rights reserved.
+        </small>
+      </div>
+    </footer>
   );
 };
-
+ 
 export default Footer;
