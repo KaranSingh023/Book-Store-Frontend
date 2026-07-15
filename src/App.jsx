@@ -5,7 +5,7 @@ import Main from './Pages/Main';
 import ProductListing from './Pages/ProductListing';
 import ProductDetail from './Pages/ProductDetail';
 import Wishlist from './Pages/Wishlist';
-import CartPage from './Pages/CartPage';
+import CartPage from './Pages/Cartpage';
 import UserProfile from './Pages/UserProfile';
 
 function App() {
