@@ -2,11 +2,11 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './Components/Navbar';
 import Footer from './Components/Footer';
 import Main from './Pages/Main';
-import ProductListing from './pages/ProductListing';
-import ProductDetail from './pages/ProductDetail';
-import Wishlist from './pages/Wishlist';
-import CartPage from './pages/CartPage';
-import UserProfile from './pages/UserProfile';
+import ProductListing from './Pages/ProductListing';
+import ProductDetail from './Pages/ProductDetail';
+import Wishlist from './Pages/Wishlist';
+import CartPage from './Pages/CartPage';
+import UserProfile from './Pages/UserProfile';
 
 function App() {
   return (
