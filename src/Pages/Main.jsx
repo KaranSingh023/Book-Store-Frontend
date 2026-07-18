@@ -10,16 +10,13 @@ const Main = () => {
     if (books.length > 0) {
       // Extract clean unique categories from your book data
       const uniqueTypes = [...new Set(books.map(book => book.type?.trim().toLowerCase()).filter(Boolean))];
-      
-      
+
       const shuffled = uniqueTypes.sort(() => Math.random() - 0.5).slice(0, 6);
 
-      
       const mappedCategories = shuffled.map(type => {
         const match = books.find(book => book.type?.trim().toLowerCase() === type);
         let coverUrl = match?.cover_image_url || match?.cover_year_url;
 
-      
         if (coverUrl && coverUrl.includes('openlibrary.org')) {
           coverUrl = `${coverUrl}?default=false`;
         } else if (!coverUrl) {
@@ -64,10 +61,13 @@ const Main = () => {
         <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
           {featuredCategories.map((category) => (
             <div className="col" key={category.name}>
-              {/* Clicking a category routes to the dynamic book filter listings */}
-              <Link to="/products" className="text-decoration-none text-dark h-100 d-block">
+              {/* Clicking a category now passes ?category=<name> to /products */}
+              <Link
+                to={`/products?category=${encodeURIComponent(category.name)}`}
+                className="text-decoration-none text-dark h-100 d-block"
+              >
                 <div className="card h-100 border-0 shadow-sm rounded-3 overflow-hidden position-relative card-hover justify-content-between bg-white">
-                  
+
                   {/* Category Image Box Setup */}
                   <div className="bg-light d-flex align-items-center justify-content-center p-3" style={{ height: '240px' }}>
                     <img
@@ -76,13 +76,13 @@ const Main = () => {
                       alt={category.name}
                       style={{ objectFit: 'contain', maxWidth: '100%' }}
                       onError={(e) => {
-                        e.target.onerror = null; 
+                        e.target.onerror = null;
                         e.target.src = `https://placehold.co/300x400?text=${encodeURIComponent(category.name)}`;
                         e.target.style.objectFit = 'cover';
                       }}
                     />
                   </div>
-                  
+
                   {/* Card Label Body */}
                   <div className="card-body p-3">
                     <h5 className="card-title fw-bold text-capitalize mb-1">

@@ -80,7 +80,7 @@ export const AppProvider = ({ children }) => {
     const fetchCatalogBooks = async () => {
       try {
         setLoading(true);
-       const response = await fetch('https://book-backend-ochre.vercel.app/books');
+        const response = await fetch('https://book-backend-ochre.vercel.app/books');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -166,6 +166,13 @@ export const AppProvider = ({ children }) => {
     setAddresses((prev) => prev.filter((a) => a.id !== id));
   };
 
+  // New: update an existing address in place, keeping its id and isDefault status
+  const updateAddress = (id, updatedFields) => {
+    setAddresses((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, ...updatedFields } : a))
+    );
+  };
+
   const selectDefaultAddress = (id) => {
     setAddresses((prev) => prev.map((a) => ({ ...a, isDefault: a.id === id })));
   };
@@ -196,6 +203,7 @@ export const AppProvider = ({ children }) => {
         setAddresses,
         addAddress,
         deleteAddress,
+        updateAddress,
         selectDefaultAddress,
         orders,
         addToCart,

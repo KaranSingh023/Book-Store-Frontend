@@ -2,18 +2,49 @@ import { useContext, useState } from 'react';
 import { AppContext } from "../Context/AppContext";
 
 const UserProfile = () => {
-  const { addresses, addAddress, deleteAddress, selectDefaultAddress, orders } = useContext(AppContext);
-  
-  // Local Controlled Modal State for New Address Form entries
+  const { addresses, addAddress, deleteAddress, updateAddress, selectDefaultAddress, orders } = useContext(AppContext);
+
+  // Local Controlled Modal State for New/Edit Address Form entries
   const [form, setForm] = useState({ name: '', street: '', city: '', zip: '', phone: '' });
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null); // null = "Add" mode, otherwise "Edit" mode
 
   const handleSubmitAddress = (e) => {
     e.preventDefault();
     if (!form.name || !form.street || !form.city || !form.zip || !form.phone) return;
-    addAddress(form);
+
+    if (editingId) {
+      updateAddress(editingId, form);
+    } else {
+      addAddress(form);
+    }
+
     setForm({ name: '', street: '', city: '', zip: '', phone: '' });
     setShowForm(false);
+    setEditingId(null);
+  };
+
+  const handleEditClick = (addr) => {
+    setForm({
+      name: addr.name,
+      street: addr.street,
+      city: addr.city,
+      zip: addr.zip,
+      phone: addr.phone
+    });
+    setEditingId(addr.id);
+    setShowForm(true);
+  };
+
+  const handleToggleForm = () => {
+    if (showForm) {
+      // Closing the form (whether it was Add or Edit) resets everything
+      setShowForm(false);
+      setEditingId(null);
+      setForm({ name: '', street: '', city: '', zip: '', phone: '' });
+    } else {
+      setShowForm(true);
+    }
   };
 
   return (
@@ -40,20 +71,29 @@ const UserProfile = () => {
           <div className="card border-0 shadow-sm p-4 bg-white mb-4">
             <div className="d-flex justify-content-between align-items-center mb-3">
               <h5 className="fw-bold m-0"><i className="bi bi-map"></i> Saved Delivery Addresses</h5>
-              <button className="btn btn-sm btn-dark fw-bold" onClick={() => setShowForm(!showForm)}>
+              <button className="btn btn-sm btn-dark fw-bold" onClick={handleToggleForm}>
                 {showForm ? "Cancel" : "+ Add New Address"}
               </button>
             </div>
 
-            {/* Managed Form Segment */}
+            {/* Managed Form Segment - shared by both Add and Edit modes */}
             {showForm && (
               <form onSubmit={handleSubmitAddress} className="row g-2 bg-light p-3 rounded mb-3 border">
+                <div className="col-12 mb-1">
+                  <span className="badge bg-warning text-dark fw-bold">
+                    {editingId ? "Editing Address" : "New Address"}
+                  </span>
+                </div>
                 <div className="col-md-6"><input type="text" placeholder="Full Name" className="form-control form-control-sm" value={form.name} onChange={e => setForm({...form, name: e.target.value})} required /></div>
                 <div className="col-md-6"><input type="text" placeholder="Phone Number" className="form-control form-control-sm" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} required /></div>
                 <div className="col-12"><input type="text" placeholder="Street Location Address" className="form-control form-control-sm" value={form.street} onChange={e => setForm({...form, street: e.target.value})} required /></div>
                 <div className="col-md-8"><input type="text" placeholder="City" className="form-control form-control-sm" value={form.city} onChange={e => setForm({...form, city: e.target.value})} required /></div>
                 <div className="col-md-4"><input type="text" placeholder="ZIP Code" className="form-control form-control-sm" value={form.zip} onChange={e => setForm({...form, zip: e.target.value})} required /></div>
-                <div className="col-12"><button type="submit" className="btn btn-warning btn-sm fw-bold w-100">Save Address Profile</button></div>
+                <div className="col-12">
+                  <button type="submit" className="btn btn-warning btn-sm fw-bold w-100">
+                    {editingId ? "Update Address" : "Save Address Profile"}
+                  </button>
+                </div>
               </form>
             )}
 
@@ -71,6 +111,9 @@ const UserProfile = () => {
                   {!addr.isDefault && (
                     <button className="btn btn-sm btn-outline-secondary py-0 px-2" style={{ fontSize: '0.75rem' }} onClick={() => selectDefaultAddress(addr.id)}>Set Primary</button>
                   )}
+                  <button className="btn btn-sm btn-outline-primary py-0 px-2" style={{ fontSize: '0.75rem' }} onClick={() => handleEditClick(addr)}>
+                    <i className="bi bi-pencil-square"></i> Update
+                  </button>
                   <button className="btn btn-sm btn-outline-danger border-0 py-0 px-1" onClick={() => deleteAddress(addr.id)}><i className="bi bi-x-circle"></i></button>
                 </div>
               </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { AppContext } from '../Context/AppContext';
 
 const ProductListing = () => {
@@ -12,9 +12,18 @@ const ProductListing = () => {
   } = useContext(AppContext);
 
   const [filteredBooks, setFilteredBooks] = useState([]);
+  const [searchParams] = useSearchParams();
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [minRating, setMinRating] = useState(0);
   const [priceSort, setPriceSort] = useState('');
+
+  // Pre-select category from URL (e.g. /products?category=health) whenever it changes
+  useEffect(() => {
+    const categoryFromUrl = searchParams.get('category');
+    if (categoryFromUrl) {
+      setSelectedCategories([categoryFromUrl.toLowerCase().trim()]);
+    }
+  }, [searchParams]);
 
   const categoriesList = useMemo(() => {
     if (!books || !Array.isArray(books)) return [];
@@ -34,7 +43,7 @@ const ProductListing = () => {
 
     let result = [...books];
 
-    if (searchQuery.trim() !== '') {
+    if (searchQuery && searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase().trim();
       result = result.filter((b) => {
         const title = (b.name || '').toLowerCase();
@@ -50,10 +59,24 @@ const ProductListing = () => {
       });
     }
 
-    result = result.filter((b) => {
-      const parsedRating = parseFloat(b.rating);
-      const bookRating = isNaN(parsedRating) ? 0 : parsedRating;
-      return bookRating >= minRating;
+    // Sort by closeness to the selected rating value.
+    // Books whose rating is nearest to minRating rise to the top;
+    // books farther away (in either direction) sink to the bottom.
+    result.sort((a, b) => {
+      const ratingA = (() => {
+        const p = parseFloat(a.rating);
+        return isNaN(p) ? 0 : Math.round(p * 10) / 10;
+      })();
+      const ratingB = (() => {
+        const p = parseFloat(b.rating);
+        return isNaN(p) ? 0 : Math.round(p * 10) / 10;
+      })();
+
+      const distanceA = Math.abs(ratingA - minRating);
+      const distanceB = Math.abs(ratingB - minRating);
+
+      if (distanceA !== distanceB) return distanceA - distanceB;
+      return ratingB - ratingA; // tie-breaker: higher rating first
     });
 
     if (priceSort === 'lowToHigh') {
@@ -71,7 +94,7 @@ const ProductListing = () => {
     }
 
     setFilteredBooks(result);
-  }, [books, selectedCategories, minRating, priceSort, searchQuery]);
+  }, [books, searchQuery, selectedCategories, minRating, priceSort]);
 
   const handleClearFilters = () => {
     setSelectedCategories([]);
@@ -282,7 +305,8 @@ const ProductListing = () => {
             <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
               {filteredBooks.map((book, index) => {
                 const actualPrice = parseFloat(book.pricing || book.price || 0);
-                const actualRating = parseFloat(book.rating || 0);
+                const rawRating = parseFloat(book.rating || 0);
+                const actualRating = isNaN(rawRating) ? 0 : Math.round(rawRating * 10) / 10;
 
                 return (
                   <div className="col" key={book._id || index}>
