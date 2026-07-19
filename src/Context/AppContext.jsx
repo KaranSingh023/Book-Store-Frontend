@@ -60,6 +60,14 @@ export const AppProvider = ({ children }) => {
     }
   });
 
+  // Toast/alert banner state — shows a brief message at the top of the screen
+  const [alertMessage, setAlertMessage] = useState(null);
+
+  const triggerAlert = (text, type = 'success') => {
+    setAlertMessage({ text, type });
+    setTimeout(() => setAlertMessage(null), 3000);
+  };
+
   useEffect(() => {
     localStorage.setItem('az_bookstore_cart', JSON.stringify(cart));
   }, [cart]);
@@ -105,15 +113,18 @@ export const AppProvider = ({ children }) => {
       if (existingIndex > -1) {
         const updatedCart = [...prevCart];
         updatedCart[existingIndex].quantity += 1;
+        triggerAlert(`Increased "${book.name}" quantity in cart!`);
         return updatedCart;
       }
 
+      triggerAlert(`Added "${book.name}" to your cart!`);
       return [...prevCart, { ...book, quantity: 1 }];
     });
   };
 
-  const removeFromCart = (bookId) => {
+  const removeFromCart = (bookId, bookName) => {
     setCart((prevCart) => prevCart.filter((item) => item._id !== bookId));
+    triggerAlert(`Removed "${bookName || 'item'}" from your cart.`, 'danger');
   };
 
   const updateCartQuantity = (bookId, delta) => {
@@ -131,27 +142,30 @@ export const AppProvider = ({ children }) => {
   const addToWishlist = (book) => {
     setWishlist((prevWishlist) => {
       if (prevWishlist.some((item) => item._id === book._id)) {
+        triggerAlert(`"${book.name}" is already in your wishlist!`, 'info');
         return prevWishlist;
       }
+      triggerAlert(`Added "${book.name}" to your wishlist!`);
       return [...prevWishlist, book];
     });
   };
 
-  const removeFromWishlist = (bookId) => {
+  const removeFromWishlist = (bookId, bookName) => {
     setWishlist((prevWishlist) =>
       prevWishlist.filter((item) => item._id !== bookId)
     );
+    triggerAlert(`Removed "${bookName || 'item'}" from wishlist.`, 'danger');
   };
 
   const moveCartToWishlist = (book) => {
     addToWishlist(book);
-    removeFromCart(book._id);
+    removeFromCart(book._id, book.name);
   };
 
   // Restored: reverse direction, used by Wishlist.jsx's "Move to Cart" button
   const moveWishlistToCart = (book) => {
     addToCart(book);
-    removeFromWishlist(book._id);
+    removeFromWishlist(book._id, book.name);
   };
 
   // Restored: address CRUD helpers used by UserProfile.jsx
@@ -160,10 +174,12 @@ export const AppProvider = ({ children }) => {
       ...prev,
       { ...addr, id: Date.now(), isDefault: prev.length === 0 }
     ]);
+    triggerAlert('New delivery address added!');
   };
 
   const deleteAddress = (id) => {
     setAddresses((prev) => prev.filter((a) => a.id !== id));
+    triggerAlert('Address deleted.', 'danger');
   };
 
   // New: update an existing address in place, keeping its id and isDefault status
@@ -171,10 +187,12 @@ export const AppProvider = ({ children }) => {
     setAddresses((prev) =>
       prev.map((a) => (a.id === id ? { ...a, ...updatedFields } : a))
     );
+    triggerAlert('Address updated!');
   };
 
   const selectDefaultAddress = (id) => {
     setAddresses((prev) => prev.map((a) => ({ ...a, isDefault: a.id === id })));
+    triggerAlert('Primary address updated!');
   };
 
   const placeOrder = (orderDetails) => {
@@ -188,6 +206,7 @@ export const AppProvider = ({ children }) => {
       ...prev
     ]);
     setCart([]);
+    triggerAlert('Order Placed Successfully!');
   };
 
   return (
@@ -213,9 +232,19 @@ export const AppProvider = ({ children }) => {
         removeFromWishlist,
         moveCartToWishlist,
         moveWishlistToCart,
-        placeOrder
+        placeOrder,
+        alertMessage,
+        triggerAlert
       }}
     >
+      {alertMessage && (
+        <div
+          className={`alert alert-${alertMessage.type} position-fixed top-0 start-50 translate-middle-x mt-3 shadow fw-bold text-center`}
+          style={{ zIndex: 9999, minWidth: '300px' }}
+        >
+          {alertMessage.text}
+        </div>
+      )}
       {children}
     </AppContext.Provider>
   );

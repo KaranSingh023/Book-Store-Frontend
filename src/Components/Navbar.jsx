@@ -90,7 +90,7 @@ const Navbar = () => {
 
           <div className="d-flex align-items-center gap-3 mt-3 mt-lg-0 justify-content-between">
             <Link to="/wishlist" className="btn btn-outline-light border-0 position-relative p-2">
-              <i className="bi bi-heart-fill text-danger"></i>
+              <i className={`bi ${wishlistCount > 0 ? 'bi-heart-fill text-danger' : 'bi-heart text-light'}`}></i>
               {wishlistCount > 0 && (
                 <span className="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-warning text-dark fw-bold">
                   {wishlistCount}

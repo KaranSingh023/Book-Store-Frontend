@@ -8,6 +8,8 @@ const ProductListing = () => {
     loading,
     addToCart,
     addToWishlist,
+    removeFromWishlist,
+    wishlist,
     searchQuery,
   } = useContext(AppContext);
 
@@ -307,18 +309,31 @@ const ProductListing = () => {
                 const actualPrice = parseFloat(book.pricing || book.price || 0);
                 const rawRating = parseFloat(book.rating || 0);
                 const actualRating = isNaN(rawRating) ? 0 : Math.round(rawRating * 10) / 10;
+                const rawCoverUrl = book.cover_image_url || book.cover_year_url;
+                const coverUrl = rawCoverUrl && rawCoverUrl.includes('openlibrary.org')
+                  ? `${rawCoverUrl}${rawCoverUrl.includes('?') ? '&' : '?'}default=false`
+                  : rawCoverUrl;
 
                 return (
                   <div className="col" key={book._id || index}>
                     <div className="card h-100 border-0 shadow-sm rounded-3 overflow-hidden position-relative bg-white d-flex flex-column product-card">
-                      <button
-                        onClick={() => addToWishlist(book)}
-                        className="btn btn-light position-absolute rounded-circle shadow-sm border d-flex align-items-center justify-content-center p-0"
-                        style={{ top: '12px', right: '12px', width: '34px', height: '34px', zIndex: 2 }}
-                        title="Add to Wishlist"
-                      >
-                        <i className="bi bi-heart-fill text-danger fs-6"></i>
-                      </button>
+                      {(() => {
+                        const isWishlisted = wishlist.some((w) => w._id === book._id);
+                        return (
+                          <button
+                            onClick={() =>
+                              isWishlisted
+                                ? removeFromWishlist(book._id, book.name)
+                                : addToWishlist(book)
+                            }
+                            className="btn btn-light position-absolute rounded-circle shadow-sm border d-flex align-items-center justify-content-center p-0"
+                            style={{ top: '12px', right: '12px', width: '34px', height: '34px', zIndex: 2 }}
+                            title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                          >
+                            <i className={`bi ${isWishlisted ? 'bi-heart-fill text-danger' : 'bi-heart text-secondary'} fs-6`}></i>
+                          </button>
+                        );
+                      })()}
 
                       <Link
                         to={`/product/${book._id}`}
@@ -326,9 +341,13 @@ const ProductListing = () => {
                       >
                         <div className="d-flex align-items-center justify-content-center product-image-wrap">
                           <img
-                            src={book.cover_image_url || book.cover_year_url}
+                            src={coverUrl}
                             alt={book.name}
                             className="img-fluid product-image"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = `https://placehold.co/300x400?text=${encodeURIComponent(book.name || 'No Cover')}`;
+                            }}
                           />
                         </div>
                       </Link>
@@ -358,12 +377,24 @@ const ProductListing = () => {
                             <i className="bi bi-cart-plus-fill"></i> Add to Cart
                           </button>
 
-                          <button
-                            className="btn btn-outline-secondary btn-sm fw-bold d-flex align-items-center justify-content-center gap-2 py-1"
-                            onClick={() => addToWishlist(book)}
-                          >
-                            <i className="bi bi-heart"></i> Add to Wishlist
-                          </button>
+                          {(() => {
+                            const isWishlisted = wishlist.some((w) => w._id === book._id);
+                            return (
+                              <button
+                                className={`btn btn-sm fw-bold d-flex align-items-center justify-content-center gap-2 py-1 ${
+                                  isWishlisted ? 'btn-danger' : 'btn-outline-secondary'
+                                }`}
+                                onClick={() =>
+                                  isWishlisted
+                                    ? removeFromWishlist(book._id, book.name)
+                                    : addToWishlist(book)
+                                }
+                              >
+                                <i className={`bi ${isWishlisted ? 'bi-heart-fill' : 'bi-heart'}`}></i>
+                                {isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                              </button>
+                            );
+                          })()}
                         </div>
                       </div>
                     </div>

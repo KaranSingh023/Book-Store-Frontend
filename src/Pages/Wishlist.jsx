@@ -15,14 +15,26 @@ const Wishlist = () => {
       ) : (
         <div className="row row-cols-1 row-cols-md-4 g-4">
           {wishlist.map(book => {
-            // Safety fallback for the price field
             const displayedPrice = book.pricing || book.price || 0;
-            
+            const rawCoverUrl = book.cover_image_url || book.cover_year_url;
+            const coverUrl = rawCoverUrl && rawCoverUrl.includes('openlibrary.org')
+              ? `${rawCoverUrl}${rawCoverUrl.includes('?') ? '&' : '?'}default=false`
+              : rawCoverUrl;
+
             return (
               <div className="col" key={book._id}>
                 <div className="card h-100 border-0 shadow-sm justify-content-between">
                   <div className="p-3 text-center bg-light" style={{ height: '160px' }}>
-                    <img src={book.cover_image_url || book.cover_year_url} className="h-100" style={{ objectFit: 'contain' }} alt={book.name} />
+                    <img
+                      src={coverUrl}
+                      className="h-100"
+                      style={{ objectFit: 'contain' }}
+                      alt={book.name}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = `https://placehold.co/200x260?text=${encodeURIComponent(book.name || 'No Cover')}`;
+                      }}
+                    />
                   </div>
                   <div className="card-body p-3">
                     <h6 className="fw-bold text-truncate mb-1">{book.name}</h6>
@@ -31,7 +43,6 @@ const Wishlist = () => {
                       <button className="btn btn-warning btn-sm fw-bold" onClick={() => moveWishlistToCart(book)}>
                         Move to Cart
                       </button>
-                      {/* FIXED: Passing the correct object mapping reference */}
                       <button className="btn btn-outline-danger btn-sm" onClick={() => removeFromWishlist(book._id, book.name)}>
                         Remove Item
                       </button>

@@ -1,14 +1,18 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../Context/AppContext';
 
 const OrderSummary = () => {
-  const { cart, addresses, placeOrder } = useContext(AppContext);
+  const { cart, addresses, placeOrder, addAddress } = useContext(AppContext);
   const navigate = useNavigate();
 
   const defaultAddress = addresses.find((a) => a.isDefault) || addresses[0];
   const [selectedAddressId, setSelectedAddressId] = useState(defaultAddress?.id || null);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newAddressForm, setNewAddressForm] = useState({
+    name: '', street: '', city: '', zip: '', phone: ''
+  });
 
   const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
   const totalPrice = cart.reduce((acc, item) => {
@@ -19,6 +23,27 @@ const OrderSummary = () => {
   const grandTotal = totalPrice + shippingFee;
 
   const selectedAddress = addresses.find((a) => a.id === selectedAddressId);
+  const justAddedRef = useRef(false);
+
+  const handleAddNewAddress = (e) => {
+    e.preventDefault();
+    const { name, street, city, zip, phone } = newAddressForm;
+    if (!name || !street || !city || !zip || !phone) return;
+
+    justAddedRef.current = true;
+    addAddress(newAddressForm);
+    setNewAddressForm({ name: '', street: '', city: '', zip: '', phone: '' });
+    setShowAddForm(false);
+  };
+
+  // Auto-select the address that was just added via the form above
+  useEffect(() => {
+    if (justAddedRef.current && addresses.length > 0) {
+      const latest = addresses[addresses.length - 1];
+      setSelectedAddressId(latest.id);
+      justAddedRef.current = false;
+    }
+  }, [addresses]);
 
   const handlePlaceOrder = () => {
     if (!selectedAddress) {
@@ -84,16 +109,61 @@ const OrderSummary = () => {
         <div className="col-12 col-md-8">
           {/* Address Selection */}
           <div className="card border-0 shadow-sm p-4 mb-4 bg-white">
-            <h5 className="fw-bold mb-3">
-              <i className="bi bi-geo-alt-fill text-danger"></i> Select Delivery Address
-            </h5>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h5 className="fw-bold m-0">
+                <i className="bi bi-geo-alt-fill text-danger"></i> Select Delivery Address
+              </h5>
+              <button
+                className="btn btn-sm btn-dark fw-bold"
+                onClick={() => setShowAddForm(!showAddForm)}
+              >
+                {showAddForm ? 'Cancel' : '+ Add New Address'}
+              </button>
+            </div>
+
+            {showAddForm && (
+              <form onSubmit={handleAddNewAddress} className="row g-2 bg-light p-3 rounded mb-3 border">
+                <div className="col-md-6">
+                  <input type="text" placeholder="Full Name" className="form-control form-control-sm"
+                    value={newAddressForm.name}
+                    onChange={(e) => setNewAddressForm({ ...newAddressForm, name: e.target.value })}
+                    required />
+                </div>
+                <div className="col-md-6">
+                  <input type="text" placeholder="Phone Number" className="form-control form-control-sm"
+                    value={newAddressForm.phone}
+                    onChange={(e) => setNewAddressForm({ ...newAddressForm, phone: e.target.value })}
+                    required />
+                </div>
+                <div className="col-12">
+                  <input type="text" placeholder="Street Location Address" className="form-control form-control-sm"
+                    value={newAddressForm.street}
+                    onChange={(e) => setNewAddressForm({ ...newAddressForm, street: e.target.value })}
+                    required />
+                </div>
+                <div className="col-md-8">
+                  <input type="text" placeholder="City" className="form-control form-control-sm"
+                    value={newAddressForm.city}
+                    onChange={(e) => setNewAddressForm({ ...newAddressForm, city: e.target.value })}
+                    required />
+                </div>
+                <div className="col-md-4">
+                  <input type="text" placeholder="ZIP Code" className="form-control form-control-sm"
+                    value={newAddressForm.zip}
+                    onChange={(e) => setNewAddressForm({ ...newAddressForm, zip: e.target.value })}
+                    required />
+                </div>
+                <div className="col-12">
+                  <button type="submit" className="btn btn-warning btn-sm fw-bold w-100">
+                    Save Address
+                  </button>
+                </div>
+              </form>
+            )}
 
             {addresses.length === 0 ? (
               <div className="text-center py-3">
-                <p className="text-danger small mb-2">No saved addresses found.</p>
-                <button className="btn btn-sm btn-dark fw-bold" onClick={() => navigate('/profile')}>
-                  Add an Address
-                </button>
+                <p className="text-danger small mb-2">No saved addresses found. Add one above to continue.</p>
               </div>
             ) : (
               addresses.map((addr) => (
@@ -138,12 +208,20 @@ const OrderSummary = () => {
             </h5>
             {cart.map((item) => {
               const itemPrice = item.pricing || item.price || 0;
+              const rawCoverUrl = item.cover_image_url || item.cover_year_url;
+              const coverUrl = rawCoverUrl && rawCoverUrl.includes('openlibrary.org')
+                ? `${rawCoverUrl}${rawCoverUrl.includes('?') ? '&' : '?'}default=false`
+                : rawCoverUrl;
               return (
                 <div className="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom" key={item._id}>
                   <img
-                    src={item.cover_image_url || item.cover_year_url}
+                    src={coverUrl}
                     style={{ maxHeight: '60px', maxWidth: '50px', objectFit: 'contain' }}
                     alt={item.name}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = `https://placehold.co/100x140?text=${encodeURIComponent(item.name || 'No Cover')}`;
+                    }}
                   />
                   <div className="flex-grow-1">
                     <h6 className="fw-bold mb-0 small text-truncate">{item.name}</h6>

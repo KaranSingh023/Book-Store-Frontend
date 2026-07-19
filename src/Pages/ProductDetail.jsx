@@ -3,11 +3,10 @@ import { useContext } from 'react';
 import { AppContext } from '../Context/AppContext';
 
 const ProductDetail = () => {
-  const { id } = useParams(); // This matches the dynamic router parameter from your App paths
+  const { id } = useParams();
   const navigate = useNavigate();
   const { books, loading, addToCart, addToWishlist } = useContext(AppContext);
 
-  // 1. Guard check while the application initializes or pulls from /books endpoint
   if (loading) {
     return (
       <div className="text-center my-5 p-5">
@@ -17,10 +16,8 @@ const ProductDetail = () => {
     );
   }
 
-  // 2. FIXED: Target the Mongoose/MongoDB native `_id` identifier property instead of `id`
   const book = books.find(b => b._id?.toString() === id?.toString());
 
-  // 3. Fallback screen if the ID match fails
   if (!book) {
     return (
       <div className="container p-5 text-center">
@@ -33,20 +30,29 @@ const ProductDetail = () => {
     );
   }
 
+  const rawCoverUrl = book.cover_image_url || book.cover_year_url;
+  const coverUrl = rawCoverUrl && rawCoverUrl.includes('openlibrary.org')
+    ? `${rawCoverUrl}${rawCoverUrl.includes('?') ? '&' : '?'}default=false`
+    : rawCoverUrl;
+
   return (
     <div className="container py-5">
       <button className="btn btn-outline-dark mb-4 btn-sm" onClick={() => navigate(-1)}>
         ← Back
       </button>
-      
+
       <div className="row g-5 bg-white p-4 rounded shadow-sm">
         {/* Book Image Frame */}
         <div className="col-12 col-md-5 text-center bg-light rounded p-4">
-          <img 
-            src={book.cover_image_url || book.cover_year_url || 'https://via.placeholder.com/150'} 
-            alt={book.name} 
-            className="img-fluid rounded shadow" 
-            style={{ maxHeight: '400px', objectFit: 'contain' }} 
+          <img
+            src={coverUrl || 'https://via.placeholder.com/150'}
+            alt={book.name}
+            className="img-fluid rounded shadow"
+            style={{ maxHeight: '400px', objectFit: 'contain' }}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = `https://placehold.co/300x400?text=${encodeURIComponent(book.name || 'No Cover')}`;
+            }}
           />
         </div>
 
@@ -55,7 +61,7 @@ const ProductDetail = () => {
           <span className="badge bg-secondary text-uppercase mb-2">{book.type}</span>
           <h1 className="fw-bold mb-1">{book.name}</h1>
           <p className="fs-4 text-muted mb-4">By {book.author}</p>
-          
+
           <div className="d-flex align-items-center mb-4">
             <span className="fs-2 fw-bold text-dark me-4">
               ${book.pricing ? book.pricing.toFixed(2) : '0.00'}

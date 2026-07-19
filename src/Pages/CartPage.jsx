@@ -32,12 +32,21 @@ const CartPage = () => {
         <div className="col-12 col-md-8">
           {cart.map(item => {
             const currentPrice = item.pricing || item.price || 0;
+            const rawCoverUrl = item.cover_image_url || item.cover_year_url;
+            const coverUrl = rawCoverUrl && rawCoverUrl.includes('openlibrary.org')
+              ? `${rawCoverUrl}${rawCoverUrl.includes('?') ? '&' : '?'}default=false`
+              : rawCoverUrl;
 
             return (
               <div className="card border-0 shadow-sm p-3 mb-3 bg-white" key={item._id}>
                 <div className="row align-items-center g-3">
                   <div className="col-3 col-md-2 text-center">
-                    <img src={item.cover_image_url || item.cover_year_url} style={{ maxHeight: '80px', maxWidth: '100%' }} alt={item.name} />
+                    <img src={coverUrl} style={{ maxHeight: '80px', maxWidth: '100%' }} alt={item.name}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = `https://placehold.co/150x200?text=${encodeURIComponent(item.name || 'No Cover')}`;
+                      }}
+                    />
                   </div>
                   <div className="col-9 col-md-5">
                     <h6 className="fw-bold mb-1 text-truncate">{item.name}</h6>
