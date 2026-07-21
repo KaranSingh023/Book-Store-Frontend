@@ -71,18 +71,18 @@ const ProductDetail = () => {
             </div>
           </div>
 
-          <table className="table table-sm table-borderless text-muted my-4">
+          <table className="table table-sm table-borderless text-muted my-4" style={{ width: 'auto' }}>
             <tbody>
               <tr>
-                <td><strong>Publisher:</strong></td>
+                <td className="pe-3" style={{ width: '1%', whiteSpace: 'nowrap' }}><strong>Publisher:</strong></td>
                 <td>{book.publisher || 'N/A'}</td>
               </tr>
               <tr>
-                <td><strong>Release Year:</strong></td>
+                <td className="pe-3" style={{ width: '1%', whiteSpace: 'nowrap' }}><strong>Release Year:</strong></td>
                 <td>{book.release_year || 'N/A'}</td>
               </tr>
               <tr>
-                <td><strong>Likes Count:</strong></td>
+                <td className="pe-3" style={{ width: '1%', whiteSpace: 'nowrap' }}><strong>Likes Count:</strong></td>
                 <td>{book.likes ? book.likes.toLocaleString() : '0'}</td>
               </tr>
             </tbody>

@@ -9,6 +9,7 @@ const OrderSummary = () => {
   const defaultAddress = addresses.find((a) => a.isDefault) || addresses[0];
   const [selectedAddressId, setSelectedAddressId] = useState(defaultAddress?.id || null);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [placedOrderSummary, setPlacedOrderSummary] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [newAddressForm, setNewAddressForm] = useState({
@@ -89,6 +90,13 @@ const OrderSummary = () => {
       return;
     }
 
+    // Snapshot the numbers now, before placeOrder() clears the cart out from under us
+    setPlacedOrderSummary({
+      itemsCount: totalItems,
+      totalPaid: grandTotal,
+      city: selectedAddress.city
+    });
+
     placeOrder({
       itemsCount: totalItems,
       totalPaid: grandTotal,
@@ -99,15 +107,15 @@ const OrderSummary = () => {
   };
 
   // ---------- SUCCESS STATE ----------
-  if (orderPlaced) {
+  if (orderPlaced && placedOrderSummary) {
     return (
       <div className="container py-5">
         <div className="card border-0 shadow-sm p-5 text-center bg-white">
           <i className="bi bi-check-circle-fill text-success display-3 mb-3"></i>
           <h3 className="fw-bold mb-2">Order Placed Successfully!</h3>
           <p className="text-muted mb-4">
-            Your order for {totalItems} item(s) totaling ${grandTotal.toFixed(2)} is on its way to{' '}
-            {selectedAddress?.city}.
+            Your order for {placedOrderSummary.itemsCount} item(s) totaling ${placedOrderSummary.totalPaid.toFixed(2)} is on its way to{' '}
+            {placedOrderSummary.city}.
           </p>
           <div className="d-flex justify-content-center gap-3">
             <button className="btn btn-warning fw-bold px-4" onClick={() => navigate('/products')}>
