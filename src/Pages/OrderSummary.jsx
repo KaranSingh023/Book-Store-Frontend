@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../Context/AppContext';
 
 const OrderSummary = () => {
-  const { cart, addresses, placeOrder, addAddress } = useContext(AppContext);
+  const { cart, addresses, placeOrder, addAddress, updateAddress, deleteAddress } = useContext(AppContext);
   const navigate = useNavigate();
 
   const defaultAddress = addresses.find((a) => a.isDefault) || addresses[0];
   const [selectedAddressId, setSelectedAddressId] = useState(defaultAddress?.id || null);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [newAddressForm, setNewAddressForm] = useState({
     name: '', street: '', city: '', zip: '', phone: ''
   });
@@ -30,10 +31,47 @@ const OrderSummary = () => {
     const { name, street, city, zip, phone } = newAddressForm;
     if (!name || !street || !city || !zip || !phone) return;
 
-    justAddedRef.current = true;
-    addAddress(newAddressForm);
+    if (editingId) {
+      updateAddress(editingId, newAddressForm);
+    } else {
+      justAddedRef.current = true;
+      addAddress(newAddressForm);
+    }
+
     setNewAddressForm({ name: '', street: '', city: '', zip: '', phone: '' });
     setShowAddForm(false);
+    setEditingId(null);
+  };
+
+  const handleEditClick = (addr, e) => {
+    e.stopPropagation(); // don't trigger the card's onClick (which selects the address)
+    setNewAddressForm({
+      name: addr.name,
+      street: addr.street,
+      city: addr.city,
+      zip: addr.zip,
+      phone: addr.phone
+    });
+    setEditingId(addr.id);
+    setShowAddForm(true);
+  };
+
+  const handleDeleteClick = (addrId, e) => {
+    e.stopPropagation();
+    deleteAddress(addrId);
+    if (selectedAddressId === addrId) {
+      setSelectedAddressId(null);
+    }
+  };
+
+  const handleToggleForm = () => {
+    if (showAddForm) {
+      setShowAddForm(false);
+      setEditingId(null);
+      setNewAddressForm({ name: '', street: '', city: '', zip: '', phone: '' });
+    } else {
+      setShowAddForm(true);
+    }
   };
 
   // Auto-select the address that was just added via the form above
@@ -115,7 +153,7 @@ const OrderSummary = () => {
               </h5>
               <button
                 className="btn btn-sm btn-dark fw-bold"
-                onClick={() => setShowAddForm(!showAddForm)}
+                onClick={handleToggleForm}
               >
                 {showAddForm ? 'Cancel' : '+ Add New Address'}
               </button>
@@ -123,6 +161,11 @@ const OrderSummary = () => {
 
             {showAddForm && (
               <form onSubmit={handleAddNewAddress} className="row g-2 bg-light p-3 rounded mb-3 border">
+                <div className="col-12 mb-1">
+                  <span className="badge bg-warning text-dark fw-bold">
+                    {editingId ? 'Editing Address' : 'New Address'}
+                  </span>
+                </div>
                 <div className="col-md-6">
                   <input type="text" placeholder="Full Name" className="form-control form-control-sm"
                     value={newAddressForm.name}
@@ -155,7 +198,7 @@ const OrderSummary = () => {
                 </div>
                 <div className="col-12">
                   <button type="submit" className="btn btn-warning btn-sm fw-bold w-100">
-                    Save Address
+                    {editingId ? 'Update Address' : 'Save Address'}
                   </button>
                 </div>
               </form>
@@ -182,7 +225,7 @@ const OrderSummary = () => {
                     checked={selectedAddressId === addr.id}
                     onChange={() => setSelectedAddressId(addr.id)}
                   />
-                  <div>
+                  <div className="flex-grow-1">
                     <div className="d-flex align-items-center gap-2 mb-1">
                       <h6 className="fw-bold m-0 small">{addr.name}</h6>
                       {addr.isDefault && (
@@ -195,6 +238,22 @@ const OrderSummary = () => {
                       {addr.street}, {addr.city}, {addr.zip}
                     </p>
                     <p className="text-muted small m-0">Phone: {addr.phone}</p>
+                  </div>
+                  <div className="d-flex gap-2">
+                    <button
+                      className="btn btn-sm btn-outline-primary py-0 px-2"
+                      style={{ fontSize: '0.75rem' }}
+                      onClick={(e) => handleEditClick(addr, e)}
+                    >
+                      <i className="bi bi-pencil-square"></i> Update
+                    </button>
+                    <button
+                      className="btn btn-sm btn-outline-danger py-0 px-2"
+                      style={{ fontSize: '0.75rem' }}
+                      onClick={(e) => handleDeleteClick(addr.id, e)}
+                    >
+                      <i className="bi bi-trash"></i>
+                    </button>
                   </div>
                 </div>
               ))

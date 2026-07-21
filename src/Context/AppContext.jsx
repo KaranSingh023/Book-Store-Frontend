@@ -128,15 +128,28 @@ export const AppProvider = ({ children }) => {
   };
 
   const updateCartQuantity = (bookId, delta) => {
-    setCart((prevCart) =>
-      prevCart
+    setCart((prevCart) => {
+      const targetItem = prevCart.find((item) => item._id === bookId);
+      const newQty = targetItem ? targetItem.quantity + delta : 0;
+
+      if (targetItem) {
+        if (newQty <= 0) {
+          triggerAlert(`Removed "${targetItem.name}" from your cart.`, 'danger');
+        } else if (delta > 0) {
+          triggerAlert(`Increased "${targetItem.name}" quantity to ${newQty}.`);
+        } else {
+          triggerAlert(`Decreased "${targetItem.name}" quantity to ${newQty}.`);
+        }
+      }
+
+      return prevCart
         .map((item) =>
           item._id === bookId
             ? { ...item, quantity: item.quantity + delta }
             : item
         )
-        .filter((item) => item.quantity > 0)
-    );
+        .filter((item) => item.quantity > 0);
+    });
   };
 
   const addToWishlist = (book) => {
